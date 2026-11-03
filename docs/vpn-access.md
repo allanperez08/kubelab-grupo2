@@ -1,11 +1,11 @@
-# Acceso por VPN (ACC-02)
+# Access (ACC-01 and ACC-02)
 
-Para dar acceso a la red del clúster usamos Tailscale con un subnet router en Proxmox. Así el docente puede llegar a Proxmox, a los nodos y a la IP de Traefik desde cualquier red, sin abrir puertos.
+Access to the cluster network is provided by Tailscale with a subnet router on Proxmox. This lets the teacher reach Proxmox, the nodes and the Traefik IP from any network, without opening ports.
 
-## Cómo está armado
+## How it works
 
 ```
-Docente (Tailscale) ──► pve (subnet router) ──► red del laboratorio 192.168.0.0/24
+Teacher (Tailscale) ──► pve (subnet router) ──► lab network 192.168.0.0/24
                                                   ├─ 192.168.0.16   Proxmox
                                                   ├─ 192.168.0.20   control-plane
                                                   ├─ 192.168.0.21   worker-1
@@ -14,19 +14,19 @@ Docente (Tailscale) ──► pve (subnet router) ──► red del laboratorio 
                                                   └─ 192.168.0.240  Traefik (MetalLB)
 ```
 
-- Tailscale está instalado solo en el host de Proxmox (`pve`). Las VMs no tienen nada instalado.
-- `pve` anuncia la ruta `192.168.0.0/24` a la red de Tailscale (tailnet `allanperez08.github`).
-- Cuando un equipo de la VPN quiere llegar a una IP `192.168.0.x`, el tráfico entra por `pve` y este lo reenvía a la VM.
+- Tailscale is installed only on the Proxmox host (`pve`). The VMs have nothing installed.
+- `pve` advertises the `192.168.0.0/24` route to the Tailscale network (tailnet `allanperez08.github`).
+- When a device on the VPN wants to reach a `192.168.0.x` IP, the traffic enters through `pve` and is forwarded to the VM.
 
-### Por qué no ZeroTier
+### Why not ZeroTier
 
-Primero se configuró ZeroTier, pero en el plan gratuito ya no se pueden crear Managed Routes. Sin esa ruta, el docente tendría que agregarla a mano con `route add` en su computadora. Con Tailscale los subnet routers están en el plan gratuito y en Windows y macOS la ruta se acepta sola. ZeroTier se desinstaló de Proxmox.
+We first set up ZeroTier, but its free plan no longer allows Managed Routes. Without that route, the teacher would have had to add it manually with `route add` on their computer. With Tailscale, subnet routers are included in the free plan and on Windows and macOS the route is accepted automatically. ZeroTier was uninstalled from Proxmox.
 
-## Configuración en Proxmox
+## Proxmox configuration
 
-Todo se hizo en la consola de `pve` como root.
+All commands were run on the `pve` console as root.
 
-1. Reenvío de paquetes, para que `pve` funcione como router:
+1. Packet forwarding, so `pve` can work as a router:
 
 ```bash
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-forward.conf
@@ -34,77 +34,108 @@ echo "net.ipv6.conf.all.forwarding = 1" >> /etc/sysctl.d/99-forward.conf
 sysctl --system
 ```
 
-2. Instalación de Tailscale y anuncio de la ruta:
+2. Install Tailscale and advertise the route:
 
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 tailscale up --advertise-routes=192.168.0.0/24
 ```
 
-El comando muestra un enlace para iniciar sesión; se abrió con la cuenta dueña del tailnet.
+The command prints a login link, which was opened with the tailnet owner's account.
 
-3. En la consola de administración (login.tailscale.com), en **Machines → pve**:
-   - **Edit route settings** → se aprobó `192.168.0.0/24`.
-   - **Disable key expiry**, para que `pve` no se desconecte cuando venza la llave.
+3. In the admin console (login.tailscale.com), under **Machines → pve**:
+   - **Edit route settings** → `192.168.0.0/24` was approved.
+   - **Disable key expiry**, so `pve` does not disconnect when its key expires.
 
-![Machines](img/tailscale-machines.png)
-
-![Ruta aprobada](img/tailscale-routes.png)
-
-4. Verificación en `pve`:
+4. Check on `pve`:
 
 ```bash
 tailscale status
 ```
 
-![tailscale status](img/pve-tailscale-status.png)
+In the admin console, `pve` appears as **Connected** with the **Subnets** and **Expiry disabled** tags, together with the devices that joined the tailnet:
 
-## Instrucciones para el docente
+![Tailscale machines](img/tailscale-machines.png)
 
-1. Aceptar la invitación que llega al correo. Se invita con rol **Member**: puede usar la red, pero no cambiar la configuración.
-2. Instalar Tailscale desde https://tailscale.com/download.
-3. Iniciar sesión con el correo invitado y, cuando pregunte qué tailnet usar, elegir **allanperez08.github**.
-4. Revisar que diga **Connected**.
-   - Windows: clic derecho en el ícono de Tailscale y confirmar que esté marcado **Use Tailscale subnets**.
-   - macOS: en el menú de Tailscale, **Use Tailscale subnets** activado.
-   - Linux: conectarse con `sudo tailscale up --accept-routes`.
-5. Probar la conexión:
+## Instructions for the teacher
+
+### 1. Join the VPN
+
+1. Accept the invitation sent by email. The invitation uses the **Member** role, which can use the network but cannot change its configuration. After accepting it, this page appears:
+
+![Invitation accepted](img/tailscale-invite-accepted.png)
+
+2. Install Tailscale from https://tailscale.com/download.
+3. Sign in with the invited email and, when asked which tailnet to use, choose **allanperez08.github**.
+
+![Select tailnet](img/tailscale-select-tailnet.png)
+
+4. Check that it says **Connected**.
+   - Windows: right-click the Tailscale icon and make sure **Use Tailscale subnets** is checked.
+   - macOS: in the Tailscale menu, turn on **Use Tailscale subnets**.
+   - Linux: connect with `sudo tailscale up --accept-routes`.
+5. Test the connection:
 
 ```
 ping 192.168.0.16
 ping 192.168.0.20
 ```
 
-6. Copiar el contenido de [hosts.txt](hosts.txt) al archivo hosts:
-   - Windows: `C:\Windows\System32\drivers\etc\hosts` (Bloc de notas como administrador).
-   - Linux / macOS: `/etc/hosts` (con `sudo`).
+### 2. Copy the zone file (ACC-01)
 
-Con eso ya puede abrir los servicios por nombre de dominio (`*.grupo2.lab`). La tabla de URLs está en el README.
+Copy the content of [hosts.txt](hosts.txt) into the hosts file:
 
-## Prueba realizada
+- Windows: `C:\Windows\System32\drivers\etc\hosts` (open Notepad as administrator).
+- Linux / macOS: `/etc/hosts` (with `sudo`).
 
-Desde una laptop conectada al hotspot de un celular (fuera de la red del laboratorio) y unida al tailnet como Member:
+```
+# Grupo 2 - KubeLab
+192.168.0.240 app.grupo2.lab
+192.168.0.240 api.grupo2.lab
+192.168.0.240 db.grupo2.lab
+192.168.0.240 grafana.grupo2.lab
+192.168.0.240 prometheus.grupo2.lab
+192.168.0.240 argocd.grupo2.lab
+```
 
-| Destino | Equipo | Resultado |
+### 3. Open the services
+
+| URL | Service | What you should see |
 | :--- | :--- | :--- |
-| 192.168.0.16 | Proxmox | responde, TTL 64 |
-| 192.168.0.20 | control-plane | responde, TTL 63 |
-| 192.168.0.21 | worker-1 | responde, TTL 63 |
-| 192.168.0.22 | worker-2 | responde, TTL 63 |
-| 192.168.0.23 | worker-3 | responde, TTL 63 |
-| https://192.168.0.16:8006 | Interfaz web de Proxmox | carga |
+| https://192.168.0.16:8006 | Proxmox VE | Proxmox dashboard with the `pve` node and the 4 VMs |
+| http://app.grupo2.lab | Web application | Page to list, create, edit and delete records |
+| http://api.grupo2.lab/health | API | API health response |
+| db.grupo2.lab | Database | Connection from a SQL client |
+| http://grafana.grupo2.lab | Grafana | Dashboard with CPU, memory, replicas, requests and logs |
+| http://prometheus.grupo2.lab | Prometheus | Targets in UP state |
+| http://argocd.grupo2.lab | Argo CD | Applications in Synced and Healthy state |
 
-El TTL 63 en las VMs muestra que el tráfico pasa por `pve`, un salto más que Proxmox.
+Read-only credentials for the database, Grafana and Argo CD are shared through a private channel. They are not stored in this repository.
 
-![Pings por VPN](img/vpn-pings.png)
+## Test
 
-![Proxmox por VPN](img/vpn-proxmox.png)
+From a laptop connected to a phone hotspot (outside the lab network) and joined to the tailnet as a Member:
 
-## Problemas que podrían pasar
+| Destination | Device | Result |
+| :--- | :--- | :--- |
+| 192.168.0.16 | Proxmox | replies, TTL 64 |
+| 192.168.0.20 | control-plane | replies, TTL 63 |
+| 192.168.0.21 | worker-1 | replies, TTL 63 |
+| 192.168.0.22 | worker-2 | replies, TTL 63 |
+| 192.168.0.23 | worker-3 | replies, TTL 63 |
+| https://192.168.0.16:8006 | Proxmox web interface | loads |
 
-| Problema | Qué revisar |
+TTL 63 on the VMs shows that traffic goes through `pve`, one hop more than Proxmox.
+
+![Pings over the VPN](img/vpn-pings.png)
+
+![Proxmox over the VPN](img/vpn-proxmox.png)
+
+## Troubleshooting
+
+| Problem | What to check |
 | :--- | :--- |
-| No responde ningún ping | Que Tailscale diga Connected y que se haya elegido el tailnet `allanperez08.github` |
-| Responde `pve` por su IP 100.x pero no las IPs 192.168.0.x | Que la ruta esté aprobada en la consola y que esté activado Use Tailscale subnets |
-| La red local del docente también es 192.168.0.x | Su red local tiene prioridad sobre la VPN. Conectarse desde otra red, por ejemplo el hotspot del celular |
-| Se pierden los primeros pings | Normal la primera vez, mientras la red encuentra la VM |
+| No ping replies at all | Tailscale says Connected and the `allanperez08.github` tailnet was selected |
+| `pve` replies on its 100.x IP but not the 192.168.0.x IPs | The route is approved in the admin console and Use Tailscale subnets is on |
+| The teacher's local network is also 192.168.0.x | The local network takes priority over the VPN. Connect from another network, for example a phone hotspot |
+| The first pings are lost | Normal the first time, while the network finds the VM |
