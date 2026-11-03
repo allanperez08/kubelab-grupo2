@@ -119,3 +119,10 @@ The `ens18` interface has the static IP. `flannel.1` and `cni0` (`10.42.x.x`) be
     - Selected the K3s built-in `local-path-provisioner` as the dynamic storage provisioner.
     - **Justification:** Alternative provisioners like Longhorn require significant memory overhead (recommended 4GB+), which exceeds the 2GB RAM limits of our worker VMs. `local-path-provisioner` provides fully compliant dynamic provisioning for local storage with a minimal resource footprint.
     - Explicitly declared the default StorageClass in `k8s/platform/storage/storage-class.yaml` to comply with GitOps practices.
+    
+**Secrets Management with Doppler (SEC-01, SEC-02 & SEC-04):**
+    - Created a Doppler project containing production database credentials.
+    - Installed the Doppler Kubernetes Operator.
+    - Manually created the `doppler-token-secret` using `kubectl` (the only manual secret allowed).
+    - Created `k8s/apps/database/doppler-secret.yaml` to dynamically sync secrets into a Kubernetes Secret named `postgres-secret`.
+    - Refactored the PostgreSQL StatefulSet to consume credentials exclusively from `postgres-secret` to ensure no plaintext passwords exist in the repository.
