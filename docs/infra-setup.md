@@ -109,5 +109,6 @@ The `ens18` interface has the static IP. `flannel.1` and `cni0` (`10.42.x.x`) be
     - Deployed Traefik via Helm, passing `k8s/platform/traefik/traefik-values.yaml` to request a static LoadBalancer IP from the MetalLB pool.
     - Verified Traefik successfully acquired the external IP `192.168.0.240`. 
     ! [](img/traefix-install.png)
+    
 
 
