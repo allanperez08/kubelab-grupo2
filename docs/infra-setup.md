@@ -13,9 +13,8 @@
 7. Installed OpenSSH server on all nodes for remote access.
 8. Started all 4 VMs successfully.
 
-
-9. **VPN & Routing Setup (ZeroTier):**
-   - Installed ZeroTier directly on the Proxmox physical host.
+9. **VPN & Routing Setup (Tailscale):**
+   - Installed Tailscale directly on the Proxmox physical host.
    - Enabled IP forwarding (`net.ipv4.ip_forward=1`).
-   - Configured iptables MASQUERADE to route traffic from the ZeroTier subnet (`10.122.150.0/24`) to the VMs subnet (`vmbr0`).
-   - Added a managed route in the ZeroTier portal (`192.168.0.0/24 via 10.122.150.40`) so any VPN client can reach the internal VM IPs directly.
+   - Configured Proxmox as a Subnet Router: `tailscale up --advertise-routes=192.168.0.0/24`.
+   - Approved the subnet route in the Tailscale admin console, allowing any VPN client to reach the internal VM IPs directly without manual routing.
