@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/tu-usuario/kubelab-grupo2.git' # Pon tu URL real
-    targetRevision: HEAD
+    targetRevision: main
     path: k8s/argocd
   destination:
     server: 'https://kubernetes.default.svc'
