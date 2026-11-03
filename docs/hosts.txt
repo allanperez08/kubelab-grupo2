@@ -1,0 +1,7 @@
+# Grupo 2 - KubeLab
+192.168.0.240 app.grupo2.lab
+192.168.0.240 api.grupo2.lab
+192.168.0.240 db.grupo2.lab
+192.168.0.240 grafana.grupo2.lab
+192.168.0.240 prometheus.grupo2.lab
+192.168.0.240 argocd.grupo2.lab

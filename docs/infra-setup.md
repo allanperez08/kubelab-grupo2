@@ -1,21 +1,64 @@
-# Infrastructure Setup Steps (INF-03 Requirement)
+# Creación de la infraestructura (INF-01 a INF-03)
 
-1. Uploaded the Ubuntu Server 26.04 LTS (64-bit) ISO to the Proxmox local storage (`local (pve)`).
-2. Created 4 VMs using the Proxmox UI (`Create VM`) for the Kubernetes cluster.
-3. Selected the uploaded Ubuntu ISO as the installation media for all nodes.
-4. Allocated disk size, CPU cores, and memory according to the node inventory table in the README.
-5. Retained default network bridge settings (`vmbr0`).
-6. Configured manual IPv4 settings during Ubuntu Server installation to assign static IPs matching the `192.168.0.0/24` subnet:
-   - `control-plane`: 192.168.0.20
-   - `worker-1`: 192.168.0.21
-   - `worker-2`: 192.168.0.22
-   - `worker-3`: 192.168.0.23
-7. Installed OpenSSH server on all nodes for remote access.
-8. Started all 4 VMs successfully.
+## Proxmox
 
+Proxmox VE 9.2 está instalado directo sobre la computadora física, con IP fija `192.168.0.16` en el bridge `vmbr0` y gateway `192.168.0.1`. La interfaz web está en `https://192.168.0.16:8006`.
 
-9. **VPN & Routing Setup (ZeroTier):**
-   - Installed ZeroTier directly on the Proxmox physical host.
-   - Enabled IP forwarding (`net.ipv4.ip_forward=1`).
-   - Configured iptables MASQUERADE to route traffic from the ZeroTier subnet (`10.122.150.0/24`) to the VMs subnet (`vmbr0`).
-   - Added a managed route in the ZeroTier portal (`192.168.0.0/24 via 10.122.150.40`) so any VPN client can reach the internal VM IPs directly.
+Como no tenemos suscripción, se desactivaron los repositorios enterprise para que `apt update` funcione con los repos de Debian:
+
+```bash
+cd /etc/apt/sources.list.d/
+mv pve-enterprise.sources pve-enterprise.off
+mv ceph.sources ceph.off
+apt update
+```
+
+![apt update](img/pve-repos.png)
+
+## Creación de cada VM
+
+Las 4 VMs se crearon igual desde **Create VM**, solo cambian el nombre, el ID, los recursos y la IP. Capturas de la VM 100 (control-plane):
+
+1. **General:** nodo `pve`, VM ID y nombre.
+   ![General](img/vm-wizard-general.png)
+2. **OS:** ISO de Ubuntu Server 26.04 LTS desde `local (pve)`, tipo Linux.
+   ![OS](img/vm-wizard-os.png)
+3. **System:** valores por defecto.
+   ![System](img/vm-wizard-system.png)
+4. **Disks:** 40 GB para el control-plane, 20 GB para los workers, en `local-lvm`.
+   ![Disks](img/vm-wizard-disks.png)
+5. **CPU:** 4 núcleos para el control-plane, 2 para los workers.
+   ![CPU](img/vm-wizard-cpu.png)
+6. **Memory:** 4096 MB para el control-plane, 2048 MB para los workers.
+   ![Memory](img/vm-wizard-memory.png)
+7. **Network:** bridge `vmbr0`, modelo VirtIO.
+   ![Network](img/vm-wizard-network.png)
+8. **Confirm:** se revisó el resumen y se creó la VM.
+   ![Confirm](img/vm-wizard-confirm.png)
+
+## Instalación de Ubuntu e IP fija
+
+En la instalación de Ubuntu Server se configuró la red en IPv4 manual:
+
+| Nodo | IP | Máscara | Gateway | DNS |
+| :--- | :--- | :--- | :--- | :--- |
+| control-plane | 192.168.0.20 | /24 | 192.168.0.1 | 8.8.8.8 |
+| worker-1 | 192.168.0.21 | /24 | 192.168.0.1 | 8.8.8.8 |
+| worker-2 | 192.168.0.22 | /24 | 192.168.0.1 | 8.8.8.8 |
+| worker-3 | 192.168.0.23 | /24 | 192.168.0.1 | 8.8.8.8 |
+
+También se instaló OpenSSH Server en todos los nodos.
+
+Para verificar en cada nodo:
+
+```bash
+ip -br a
+cat /etc/netplan/*.yaml
+```
+
+| Nodo | Hardware en Proxmox | IP fija |
+| :--- | :--- | :--- |
+| control-plane | ![](img/vm-100-hardware.png) | ![](img/vm-100-ip.png) |
+| worker-1 | ![](img/vm-101-hardware.png) | ![](img/vm-101-ip.png) |
+| worker-2 | ![](img/vm-102-hardware.png) | ![](img/vm-102-ip.png) |
+| worker-3 | ![](img/vm-103-hardware.png) | ![](img/vm-103-ip.png) |
