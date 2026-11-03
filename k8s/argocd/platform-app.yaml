@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/allanperez08/kubelab-grupo2.git'
-    targetRevision: HEAD
+    targetRevision: main
     path: k8s/platform
     directory:
       recurse: true
