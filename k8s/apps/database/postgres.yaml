@@ -19,11 +19,20 @@ spec:
         image: postgres:15-alpine
         env:
         - name: POSTGRES_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: "supersecreto" # Cambiaremos esto por Doppler después (SEC-01)
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
         - name: POSTGRES_DB
-          value: "kubelab"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_DB
         ports:
         - containerPort: 5432
           name: postgres
