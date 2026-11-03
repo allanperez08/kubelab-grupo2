@@ -102,3 +102,12 @@ The `ens18` interface has the static IP. `flannel.1` and `cni0` (`10.42.x.x`) be
 | worker-1 | ![IP worker-1](img/vm-101-ip.png) |
 | worker-2 | ![IP worker-2](img/vm-102-ip.png) |
 | worker-3 | ![IP worker-3](img/vm-103-ip.png) |
+
+**Load Balancing & Ingress Controller (NET-01 & NET-02):**
+    - Installed MetalLB via the official manifest.
+    - Applied `k8s/platform/metallb/metallb-config.yaml` to define the Layer 2 IPAddressPool (`192.168.0.240-192.168.0.250`) and L2Advertisement.
+    - Deployed Traefik via Helm, passing `k8s/platform/traefik/traefik-values.yaml` to request a static LoadBalancer IP from the MetalLB pool.
+    - Verified Traefik successfully acquired the external IP `192.168.0.240`. 
+    ! [](img/traefix-install.png)
+
+
