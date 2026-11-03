@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/allanperez08/kubelab-grupo2.git' # Pon tu URL real
+    repoURL: 'https://github.com/allanperez08/kubelab-grupo2.git'
     targetRevision: main
     path: k8s/argocd
   destination:
