@@ -92,6 +92,7 @@ curl -4 -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.4+k3s1 \
   K3S_TOKEN=<node-token> sh -
 ```
 
+The node token is a credential, so it is not stored in this repository and it is hidden in the screenshots.
 
 Verification on the control plane:
 
