@@ -110,4 +110,12 @@ The `ens18` interface has the static IP. `flannel.1` and `cni0` (`10.42.x.x`) be
     - Verified Traefik successfully acquired the external IP `192.168.0.240`. 
     ! [](img/traefix-install.png)
 
+**GitOps Controller (CD-02 Requirement):**
+    - Installed Argo CD into the `argocd` namespace.
+    - Patched `argocd-server` to run with the `--insecure` flag to allow Traefik to handle routing.
+    - Created a Traefik I
 
+**Dynamic Storage Provisioning (PER-01 Requirement):**
+    - Selected the K3s built-in `local-path-provisioner` as the dynamic storage provisioner.
+    - **Justification:** Alternative provisioners like Longhorn require significant memory overhead (recommended 4GB+), which exceeds the 2GB RAM limits of our worker VMs. `local-path-provisioner` provides fully compliant dynamic provisioning for local storage with a minimal resource footprint.
+    - Explicitly declared the default StorageClass in `k8s/platform/storage/storage-class.yaml` to comply with GitOps practices.
