@@ -2,3 +2,19 @@ service:
   type: LoadBalancer
   annotations:
     metallb.universe.tf/address-pool: first-pool
+ports:
+  web:
+    port: 8000
+    expose: true
+    exposedPort: 80
+    protocol: TCP
+  websecure:
+    port: 8443
+    expose: true
+    exposedPort: 443
+    protocol: TCP
+  postgres:
+    port: 5432
+    expose: true
+    exposedPort: 5432
+    protocol: TCP
