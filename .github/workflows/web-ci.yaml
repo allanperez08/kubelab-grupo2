@@ -51,4 +51,5 @@ jobs:
           git remote set-url origin https://x-access-token:${GIT_PAT}@github.com/${{ github.repository }}.git
           git add k8s/apps/web.yaml
           git commit -m "ci: update Web image to ${SHA_SHORT} [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin main
           git push

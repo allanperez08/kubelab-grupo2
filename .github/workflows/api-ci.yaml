@@ -57,4 +57,5 @@ jobs:
           git remote set-url origin https://x-access-token:${GIT_PAT}@github.com/${{ github.repository }}.git
           git add k8s/apps/api.yaml
           git commit -m "ci: update API image to ${SHA_SHORT} [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin main
           git push
