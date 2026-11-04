@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: ghcr.io/allanperez08/kubelab-web:initial-commit # Cambia 'tu-usuario-github'. APP-05
+        image: ghcr.io/allanperez08/kubelab-web:409529c
         imagePullPolicy: Always
         ports:
         - containerPort: 80
