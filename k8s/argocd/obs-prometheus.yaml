@@ -14,9 +14,9 @@ spec:
         alertmanager:
           enabled: false
         kubeStateMetrics:
-          enabled: false
+          enabled: true
         nodeExporter:
-          enabled: false
+          enabled: true
         grafana:
           admin:
             existingSecret: "grafana-admin-secret"

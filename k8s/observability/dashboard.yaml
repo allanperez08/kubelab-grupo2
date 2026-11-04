@@ -19,6 +19,10 @@ data:
           "type": "stat",
           "title": "Servicios Activos (UP)",
           "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "targets": [
             {
               "expr": "sum(up)",
