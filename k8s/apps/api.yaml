@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: ghcr.io/allanperez08/kubelab-api:initial-commit # Cambia 'tu-usuario-github'. APP-05 prohíbe usar 'latest'
+        image: ghcr.io/allanperez08/kubelab-api:67e3ca6
         imagePullPolicy: Always
         envFrom:
         - secretRef:
