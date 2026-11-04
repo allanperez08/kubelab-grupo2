@@ -27,6 +27,7 @@ spec:
               type: loki
               url: http://loki-stack:3100
               access: proxy
+              isDefault: false
         prometheus:
           prometheusSpec:
             resources:
