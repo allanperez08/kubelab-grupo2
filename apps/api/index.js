@@ -1,8 +1,10 @@
 const express = require('express');
+const cors = require('cors');
 const { Pool } = require('pg');
 const client = require('prom-client');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // Configuración de métricas Prometheus (Requerimiento APP-01)
