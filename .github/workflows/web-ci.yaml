@@ -1,0 +1,54 @@
+name: Web CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/**' # CD-01: Filtrado por ruta
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
+      - name: Get Short SHA
+        run: |
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./apps/web
+          push: true
+          tags: ghcr.io/${{ env.OWNER_LC }}/kubelab-web:${{ env.SHA_SHORT }}
+
+      - name: Update K8s Manifest and Push (GitOps)
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          GIT_PAT=$(doppler secrets get GIT_PAT --plain)
+          sed -i "s|image: .*kubelab-web:.*|image: ghcr.io/${OWNER_LC}/kubelab-web:${SHA_SHORT}|g" k8s/apps/web.yaml
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${GIT_PAT}@github.com/${{ github.repository }}.git
+          git add k8s/apps/web.yaml
+          git commit -m "ci: update Web image to ${SHA_SHORT} [skip ci]" || echo "No changes to commit"
+          git push
