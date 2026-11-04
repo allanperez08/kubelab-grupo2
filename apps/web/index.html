@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KubeLab - Grupo 2</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, button { padding: 10px; margin: 5px 0; width: calc(100% - 22px); }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #e9ecef; margin: 5px 0; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; }
+        .btn-danger { background-color: #dc3545; width: auto; }
+        .btn-edit { background-color: #ffc107; color: black; width: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Inventario (CRUD)</h2>
+        <input type="text" id="itemName" placeholder="Nombre del nuevo registro">
+        <button onclick="createItem()">Agregar Registro</button>
+        <ul id="itemList"></ul>
+    </div>
+
+    <script>
+        // NET-05 exige usar el dominio grupo#.lab
+        const API_URL = 'http://api.grupo2.lab/api/items';
+
+        async function loadItems() {
+            const res = await fetch(API_URL);
+            const items = await res.json();
+            const list = document.getElementById('itemList');
+            list.innerHTML = '';
+            items.forEach(item => {
+                list.innerHTML += `
+                    <li>
+                        <span>${item.name}</span>
+                        <div>
+                            <button class="btn-edit" onclick="editItem(${item.id})">Editar</button>
+                            <button class="btn-danger" onclick="deleteItem(${item.id})">Eliminar</button>
+                        </div>
+                    </li>`;
+            });
+        }
+
+        async function createItem() {
+            const name = document.getElementById('itemName').value;
+            if (!name) return alert('Ingrese un nombre');
+            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+            document.getElementById('itemName').value = '';
+            loadItems();
+        }
+
+        async function editItem(id) {
+            const newName = prompt('Ingrese el nuevo nombre:');
+            if (!newName) return;
+            await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
+            loadItems();
+        }
+
+        async function deleteItem(id) {
+            if (confirm('¿Seguro que desea eliminar este registro?')) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadItems();
+            }
+        }
+
+        loadItems();
+    </script>
+</body>
+</html>
