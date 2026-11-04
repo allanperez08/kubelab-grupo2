@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: ghcr.io/allanperez08/kubelab-api:90c06fe
+        image: ghcr.io/allanperez08/kubelab-api:fc4fe52
         imagePullPolicy: Always
         envFrom:
         - secretRef:
