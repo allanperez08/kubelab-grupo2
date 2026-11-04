@@ -11,6 +11,12 @@ spec:
     chart: kube-prometheus-stack
     helm:
       values: |
+        alertmanager:
+          enabled: false
+        kubeStateMetrics:
+          enabled: false
+        nodeExporter:
+          enabled: false
         grafana:
           persistence:
             enabled: true
@@ -23,6 +29,9 @@ spec:
               access: proxy
         prometheus:
           prometheusSpec:
+            resources:
+              requests:
+                memory: 400Mi
             storageSpec:
               volumeClaimTemplate:
                 spec:
