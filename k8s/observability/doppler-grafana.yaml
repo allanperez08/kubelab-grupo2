@@ -1,0 +1,10 @@
+apiVersion: secrets.doppler.com/v1alpha1
+kind: DopplerSecret
+metadata:
+  name: grafana-secrets
+  namespace: monitoring
+spec:
+  tokenSecret:
+    name: doppler-token-secret
+  managedSecret:
+    name: grafana-admin-secret
