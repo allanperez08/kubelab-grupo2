@@ -20,8 +20,6 @@ spec:
         grafana:
           admin:
             existingSecret: "grafana-admin-secret"
-            userKey: GRAFANA_USER
-            passwordKey: GRAFANA_PASSWORD
           persistence:
             enabled: true
             storageClassName: "local-path"
