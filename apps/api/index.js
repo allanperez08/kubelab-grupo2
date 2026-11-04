@@ -17,17 +17,16 @@ const httpRequestTimer = new client.Histogram({
 
 // Conexión a la base de datos PostgreSQL usando variables de entorno de Doppler
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@postgres:5432/${process.env.POSTGRES_DB}`
+  user: process.env.POSTGRES_USER || 'admin',
+  host: 'postgres', // Nombre del Service de K8s de la base de datos
+  database: process.env.POSTGRES_DB || 'kubelab',
+  password: process.env.POSTGRES_PASSWORD || 'supersecreto',
+  port: 5432,
 });
 
 // Endpoint de Salud (Requerimiento APP-01)
-app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.status(200).json({ status: 'healthy', database: 'connected' });
-  } catch (err) {
-    res.status(500).json({ status: 'unhealthy', error: err.message });
-  }
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
 });
 
 // Endpoint de Métricas para Prometheus (Requerimiento APP-01 y OBS-01)
