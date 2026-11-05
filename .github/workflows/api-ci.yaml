@@ -18,6 +18,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # CD-01: se ejecutan las pruebas de la API antes de construir la imagen.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Run API tests
+        working-directory: apps/api
+        run: |
+          npm install
+          npm test
+
       - name: Install Doppler CLI
         uses: dopplerhq/cli-action@v3
 
