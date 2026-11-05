@@ -25,6 +25,8 @@ spec:
       - name: postgres
         image: postgres:15-alpine
         env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
@@ -51,7 +53,7 @@ spec:
       name: postgres-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "local-path" # Usa el provisioner del paso anterior
+      storageClassName: "local-path"
       resources:
         requests:
           storage: 2Gi
