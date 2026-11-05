@@ -152,7 +152,7 @@ async function main() {
     user: process.env.POSTGRES_USER || 'admin',
     host: process.env.POSTGRES_HOST || 'postgres',
     database: process.env.POSTGRES_DB || 'kubelab',
-    password: process.env.POSTGRES_PASSWORD || 'supersecreto',
+    password: process.env.POSTGRES_PASSWORD,
     port: 5432,
   });
   // Un error en un cliente inactivo del pool no debe tumbar el proceso.

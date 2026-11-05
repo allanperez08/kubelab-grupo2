@@ -14,13 +14,6 @@ spec:
       labels:
         app: postgres
     spec:
-      # En worker-1 (Ubuntu 26.04 + containerd) el perfil AppArmor por defecto
-      # (cri-containerd.apparmor.d) niega el envio de senales entre procesos del propio
-      # contenedor. Evidencia (dmesg): apparmor="DENIED" operation="signal"
-      # comm="gosu"|"postgres" peer="cri-containerd.apparmor.d//&unconfined".
-      # Efecto: gosu (arranque como root) se queda al 100% de CPU sin logs y pg_ctl
-      # falla al apagar el servidor temporal del entrypoint. Se quita el perfil
-      # SOLO en este pod; el resto del cluster conserva el perfil por defecto.
       securityContext:
         appArmorProfile:
           type: Unconfined
@@ -29,11 +22,20 @@ spec:
         image: postgres:15-alpine
         env:
         - name: POSTGRES_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: "supersecreto"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
         - name: POSTGRES_DB
-          value: "kubelab"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_DB
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata-fresh
         ports:
