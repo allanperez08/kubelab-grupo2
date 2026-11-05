@@ -14,43 +14,27 @@ spec:
       labels:
         app: postgres
     spec:
-      initContainers:
-      - name: take-data-dir-ownership
-        image: busybox
-        command: ['sh', '-c', 'chown -R 70:70 /var/lib/postgresql/data']
-        volumeMounts:
-        - name: postgres-data
-          mountPath: /var/lib/postgresql/data
       containers:
       - name: postgres
         image: postgres:15-alpine
         env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
         - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: POSTGRES_USER
+          value: "admin"
         - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: POSTGRES_PASSWORD
+          value: "supersecreto"
         - name: POSTGRES_DB
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: POSTGRES_DB
+          value: "kubelab"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata-fresh
         ports:
         - containerPort: 5432
           name: postgres
         volumeMounts:
-        - name: postgres-data
+        - name: db-disk
           mountPath: /var/lib/postgresql/data
   volumeClaimTemplates:
   - metadata:
-      name: postgres-data
+      name: db-disk
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: "local-path"
