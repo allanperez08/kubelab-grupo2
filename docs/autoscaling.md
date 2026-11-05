@@ -37,3 +37,32 @@ kubectl top nodes
 Expected behavior: CPU of the `api` pods rises above 50 %, the HPA adds replicas (up to 6) and, about two minutes after the test ends, goes back to 2. The dashboard *KubeLab Grupo 2 - Plataforma* in Grafana shows the same thing (available replicas, CPU per pod, requests per second).
 
 Each iteration creates, edits and deletes its own test record, so the database is left clean.
+
+## Evidence
+
+### Replicas (HA-01)
+
+API and web with 2 replicas each, next to PostgreSQL:
+
+![Pods](img/ha-pods.png)
+
+### Deleting a pod (HA-03)
+
+While a loop calls `http://api.grupo2.lab/health` every half second, an API pod is deleted:
+
+```bash
+kubectl delete -n default $(kubectl get pod -n default -l app=api -o name | head -1)
+```
+
+The other replica keeps answering `200` and Kubernetes creates a new pod in a few seconds.
+
+![Deleting a pod](img/ha-delete-pod.png)
+
+### Autoscaling with k6 (HA-04, HA-05)
+
+Video of the load test:
+[ev-autoscaling.mp4 (Google Drive)](https://drive.google.com/file/d/1mBFlpBRF54H0yRtS7iE8Cd1SFZ_gxdUK/view?usp=sharing)
+
+State after the test: the k6 summary, and the HPA back to its minimum of 2 replicas once the CPU usage went down.
+
+![After the load test](img/hpa-load-test.png)

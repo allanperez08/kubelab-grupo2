@@ -52,7 +52,7 @@ curl -4 -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.4+k3s1 \
 
 ![worker-3](img/k3s-install-worker-3.png)
 
-## Verification
+## Verification (all 4 nodes, before the change)
 
 On the control plane:
 
@@ -69,3 +69,38 @@ worker-3        Ready    <none>                 30s    v1.30.4+k3s1
 ```
 
 ![Nodes Ready](img/k3s-nodes-ready.png)
+
+## Final cluster: one worker
+
+The physical computer has 8 GB of RAM, which is not enough for Proxmox, four nodes and the whole stack (Argo CD, Prometheus, Loki, Grafana, PostgreSQL). With the teacher's approval, the final cluster runs with the control plane and **one worker** (`worker-1`). `worker-2` and `worker-3` were created, configured and joined to the cluster (see the sections above), and were then taken out of the cluster to free memory.
+
+The control plane keeps its `NoSchedule` taint, so all the application workloads run on `worker-1`.
+
+| Node | CPU (cores) | Memory | Disk |
+| :--- | :--- | :--- | :--- |
+| control-plane | 4 | 4 GB (unchanged) | 40 GB |
+| worker-1 | 4 (was 2) | 4.98 GB (was 2 GB) | 20 GB |
+
+Procedure used to take `worker-2` and `worker-3` out of the cluster:
+
+1. In Proxmox, each VM was shut down (right-click on the VM → **Shutdown**).
+2. On the control plane, each node was removed from the cluster:
+
+```bash
+sudo kubectl delete node worker-2
+sudo kubectl delete node worker-3
+```
+
+3. In Proxmox, the memory and cores of `worker-1` were increased (**Hardware → Memory** and **Processors**).
+
+Final hardware of the control plane:
+
+![Final hardware control-plane](img/final-control-plane-hardware.png)
+
+Final hardware of `worker-1`:
+
+![Final hardware worker-1](img/final-worker-1-hardware.png)
+
+`kubectl get nodes` during the final tests:
+
+![Nodes during the final tests](img/nodes-running.png)
