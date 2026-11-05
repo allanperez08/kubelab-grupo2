@@ -41,19 +41,31 @@ spec:
           name: postgres
         # El pod solo se marca Ready cuando Postgres acepta conexiones de verdad;
         # si algo falla se ve (0/1 o reinicios) en lugar de un falso 1/1.
+        # pg_isready lleva -U/-d con el usuario y la base reales: sin ellos usa el usuario
+        # del sistema (root) y Postgres registra 'FATAL: role "root" does not exist' en
+        # cada sonda (inofensivo, pero llena los logs).
         startupProbe:
           exec:
-            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+            command:
+            - sh
+            - -c
+            - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
           periodSeconds: 5
           failureThreshold: 60
         readinessProbe:
           exec:
-            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+            command:
+            - sh
+            - -c
+            - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
           periodSeconds: 10
           timeoutSeconds: 3
         livenessProbe:
           exec:
-            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+            command:
+            - sh
+            - -c
+            - pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
           periodSeconds: 20
           timeoutSeconds: 5
           failureThreshold: 6
