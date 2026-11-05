@@ -11,7 +11,10 @@ metadata:
   labels:
     grafana_dashboard: "1"
 data:
-  kubelab.json: |
+  # El nombre del archivo es nuevo a proposito: Grafana (con persistencia) recuerda por nombre de
+  # archivo el dashboard provisionado anterior, que tenia otro uid, y rechazaba la actualizacion
+  # ("failed to save dashboard ... uid:kubelab-grupo2: Dashboard not found").
+  kubelab-plataforma.json: |
     {
       "uid": "kubelab-grupo2",
       "title": "KubeLab Grupo 2 - Plataforma",

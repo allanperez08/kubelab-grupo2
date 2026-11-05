@@ -12,6 +12,10 @@ spec:
     helm:
       values: |
         loki:
+          # kube-prometheus-stack ya marca Prometheus como datasource por defecto; si Loki tambien
+          # lo es, Grafana rechaza TODA la provision de datasources ("Only one datasource per
+          # organization can be marked as default") y Prometheus no aparece.
+          isDefault: false
           persistence:
             enabled: true
             storageClassName: "local-path"
