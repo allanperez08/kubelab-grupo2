@@ -9,8 +9,8 @@ Teacher (Tailscale) ──► pve (subnet router) ──► lab network 192.168.
                                                   ├─ 192.168.0.16   Proxmox
                                                   ├─ 192.168.0.20   control-plane
                                                   ├─ 192.168.0.21   worker-1
-                                                  ├─ 192.168.0.22   worker-2
-                                                  ├─ 192.168.0.23   worker-3
+                                                  ├─ 192.168.0.22   worker-2 (not in the final cluster)
+                                                  ├─ 192.168.0.23   worker-3 (not in the final cluster)
                                                   └─ 192.168.0.240  Traefik (MetalLB)
 ```
 
@@ -102,7 +102,7 @@ Copy the content of [hosts.txt](hosts.txt) into the hosts file:
 
 | URL | Service | What you should see |
 | :--- | :--- | :--- |
-| https://192.168.0.16:8006 | Proxmox VE | Proxmox dashboard with the `pve` node and the 4 VMs |
+| https://192.168.0.16:8006 | Proxmox VE | Proxmox dashboard with the `pve` node and its VMs |
 | http://app.grupo2.lab | Web application | Page to list, create, edit and delete records |
 | http://api.grupo2.lab/health | API | API health response |
 | db.grupo2.lab | Database | Connection from a SQL client |

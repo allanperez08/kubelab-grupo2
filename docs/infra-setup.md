@@ -24,7 +24,7 @@ apt update
 | Subnet | `192.168.0.0/24` |
 | Gateway | `192.168.0.1` (Trendnet router) |
 | Proxmox host (`pve`) | `192.168.0.16` |
-| Cluster nodes | `192.168.0.20` to `192.168.0.23` |
+| Cluster nodes | `192.168.0.20` to `192.168.0.23` (final cluster: `.20` and `.21`) |
 | Router DHCP range | `192.168.0.100` to `192.168.0.199` |
 | MetalLB pool (INF-06) | `192.168.0.240` to `192.168.0.250` |
 | Traefik IP | `192.168.0.240` |
@@ -42,6 +42,8 @@ On the day of the presentation everything is plugged into the Trendnet router, w
 | worker-1 | 101 | Worker | 192.168.0.21 | 2 | 2 GB | 20 GB |
 | worker-2 | 102 | Worker | 192.168.0.22 | 2 | 2 GB | 20 GB |
 | worker-3 | 103 | Worker | 192.168.0.23 | 2 | 2 GB | 20 GB |
+
+The 4 VMs were created and joined to the cluster. Because the physical computer only has 8 GB of RAM, the final cluster uses the control plane and `worker-1` only, with the teacher's approval, and `worker-1` was resized to 4 cores and 4.98 GB of RAM. The table above shows the values used when the VMs were created. See [cluster-setup.md](cluster-setup.md).
 
 ## VM creation
 
@@ -103,26 +105,4 @@ The `ens18` interface has the static IP. `flannel.1` and `cni0` (`10.42.x.x`) be
 | worker-2 | ![IP worker-2](img/vm-102-ip.png) |
 | worker-3 | ![IP worker-3](img/vm-103-ip.png) |
 
-**Load Balancing & Ingress Controller (NET-01 & NET-02):**
-    - Installed MetalLB via the official manifest.
-    - Applied `k8s/platform/metallb/metallb-config.yaml` to define the Layer 2 IPAddressPool (`192.168.0.240-192.168.0.250`) and L2Advertisement.
-    - Deployed Traefik via Helm, passing `k8s/platform/traefik/traefik-values.yaml` to request a static LoadBalancer IP from the MetalLB pool.
-    - Verified Traefik successfully acquired the external IP `192.168.0.240`. 
-    ! [](img/traefix-install.png)
-
-**GitOps Controller (CD-02 Requirement):**
-    - Installed Argo CD into the `argocd` namespace.
-    - Patched `argocd-server` to run with the `--insecure` flag to allow Traefik to handle routing.
-    - Created a Traefik I
-
-**Dynamic Storage Provisioning (PER-01 Requirement):**
-    - Selected the K3s built-in `local-path-provisioner` as the dynamic storage provisioner.
-    - **Justification:** Alternative provisioners like Longhorn require significant memory overhead (recommended 4GB+), which exceeds the 2GB RAM limits of our worker VMs. `local-path-provisioner` provides fully compliant dynamic provisioning for local storage with a minimal resource footprint.
-    - Explicitly declared the default StorageClass in `k8s/platform/storage/storage-class.yaml` to comply with GitOps practices.
-    
-**Secrets Management with Doppler (SEC-01, SEC-02 & SEC-04):**
-    - Created a Doppler project containing production database credentials.
-    - Installed the Doppler Kubernetes Operator.
-    - Manually created the `doppler-token-secret` using `kubectl` (the only manual secret allowed).
-    - Created `k8s/apps/database/doppler-secret.yaml` to dynamically sync secrets into a Kubernetes Secret named `postgres-secret`.
-    - Refactored the PostgreSQL StatefulSet to consume credentials exclusively from `postgres-secret` to ensure no plaintext passwords exist in the repository.
+MetalLB, Traefik, storage, Doppler and Argo CD are documented in [platform-setup.md](platform-setup.md).

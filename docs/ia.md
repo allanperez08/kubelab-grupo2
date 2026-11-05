@@ -35,6 +35,10 @@ The assistant had **no access** to the cluster, Proxmox, Doppler, GitHub secrets
 - Executing, testing and merging every change was done by the team.
 - No credential was pasted into the conversation; the assistant only saw what is in the public repository.
 
+## Documentation and network guidance
+
+Claude (Anthropic) was also used through the Claude desktop app by Karla Lopez to help with the VPN choice (ZeroTier vs. Tailscale), the configuration of the TRENDnet router for the defense, and to write and organize the README and the files in `docs/`. The screenshots were taken by the team; the assistant renamed them and hid private data (k3s node token, Tailscale login link). The team reviewed the text before every pull request.
+
 ## Short explanation for the defense
 
 1. Symptom: PostgreSQL `Running`, empty logs, `ECONNREFUSED` from the API.
