@@ -1,21 +1,18 @@
+# Traefik (chart traefik/traefik 42.2.0), instalado con Helm:
+#   helm upgrade --install traefik traefik --repo https://traefik.github.io/charts \
+#     --version 42.2.0 -n kube-system -f k8s/platform/traefik/traefik-values.yaml
+# web (80) y websecure (443) usan los valores por defecto del chart.
 service:
   type: LoadBalancer
   annotations:
     metallb.universe.tf/address-pool: first-pool
+    # NET-02: IP fija dentro del pool de MetalLB (192.168.0.240-250)
     metallb.universe.tf/loadBalancerIPs: 192.168.0.240
 ports:
-  web:
-    port: 8000
-    expose: true
-    exposedPort: 80
-    protocol: TCP
-  websecure:
-    port: 8443
-    expose: true
-    exposedPort: 443
-    protocol: TCP
+  # NET-04: entrypoint TCP para la base de datos (IngressRouteTCP postgres-tcp)
   postgres:
     port: 5432
-    expose: true
+    expose:
+      default: true
     exposedPort: 5432
     protocol: TCP
