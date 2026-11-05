@@ -14,6 +14,16 @@ spec:
       labels:
         app: postgres
     spec:
+      # En worker-1 (Ubuntu 26.04 + containerd) el perfil AppArmor por defecto
+      # (cri-containerd.apparmor.d) niega el envio de senales entre procesos del propio
+      # contenedor. Evidencia (dmesg): apparmor="DENIED" operation="signal"
+      # comm="gosu"|"postgres" peer="cri-containerd.apparmor.d//&unconfined".
+      # Efecto: gosu (arranque como root) se queda al 100% de CPU sin logs y pg_ctl
+      # falla al apagar el servidor temporal del entrypoint. Se quita el perfil
+      # SOLO en este pod; el resto del cluster conserva el perfil por defecto.
+      securityContext:
+        appArmorProfile:
+          type: Unconfined
       containers:
       - name: postgres
         image: postgres:15-alpine
@@ -29,6 +39,24 @@ spec:
         ports:
         - containerPort: 5432
           name: postgres
+        # El pod solo se marca Ready cuando Postgres acepta conexiones de verdad;
+        # si algo falla se ve (0/1 o reinicios) en lugar de un falso 1/1.
+        startupProbe:
+          exec:
+            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+          periodSeconds: 10
+          timeoutSeconds: 3
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 6
         volumeMounts:
         - name: db-disk
           mountPath: /var/lib/postgresql/data
