@@ -11,10 +11,10 @@ const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics();
 
 const pool = new Pool({
-  user: process.env.POSTGRES_USER || 'postgres',
+  user: process.env.POSTGRES_USER || 'admin',
   host: 'postgres',
-  database: process.env.POSTGRES_DB || 'postgres', // Usar postgres como fallback seguro
-  password: process.env.POSTGRES_PASSWORD || 'postgres',
+  database: process.env.POSTGRES_DB || 'kubelab', // Usar postgres como fallback seguro
+  password: process.env.POSTGRES_PASSWORD || 'supersecreto',
   port: 5432,
 });
 
