@@ -2,6 +2,7 @@ service:
   type: LoadBalancer
   annotations:
     metallb.universe.tf/address-pool: first-pool
+    metallb.universe.tf/loadBalancerIPs: 192.168.0.240
 ports:
   web:
     port: 8000
