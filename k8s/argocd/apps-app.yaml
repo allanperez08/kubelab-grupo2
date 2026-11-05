@@ -14,9 +14,20 @@ spec:
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
+  # Los HPA (k8s/apps/hpa.yaml) cambian spec.replicas de api y web. Se ignoran SOLO los
+  # cambios hechos por el controlador del HPA; un "kubectl scale" manual sigue siendo drift
+  # y selfHeal lo revierte (CD-04). En k3s el controller-manager va dentro del binario k3s,
+  # por eso se listan los dos nombres de "field manager".
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers:
+        - kube-controller-manager
+        - k3s
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
