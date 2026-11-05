@@ -1,0 +1,20 @@
+# OBS-01: Prometheus recolecta el endpoint /metrics de la API (CPU/memoria de Node y
+# las metricas http_requests_total / http_request_duration_seconds del dashboard).
+# Prometheus selecciona todos los ServiceMonitor (serviceMonitorSelectorNilUsesHelmValues: false),
+# asi que no necesita la etiqueta "release" del chart.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app: api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
