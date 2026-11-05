@@ -69,6 +69,15 @@ spec:
           periodSeconds: 20
           timeoutSeconds: 5
           failureThreshold: 6
+        # Con un solo worker de memoria limitada, los requests suben la prioridad de la base
+        # de datos (sin ellos el pod es BestEffort y es el primero en ser expulsado bajo presion
+        # de memoria) y el limite evita que un exceso afecte al resto del nodo.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
         volumeMounts:
         - name: db-disk
           mountPath: /var/lib/postgresql/data
