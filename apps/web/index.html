@@ -12,15 +12,19 @@
         button:hover { background-color: #0056b3; }
         ul { list-style-type: none; padding: 0; }
         li { background: #e9ecef; margin: 5px 0; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; }
+        li span { overflow-wrap: anywhere; margin-right: 10px; }
         .btn-danger { background-color: #dc3545; width: auto; }
         .btn-edit { background-color: #ffc107; color: black; width: auto; }
+        .message { background: #f8d7da; color: #842029; border: 1px solid #f5c2c7; border-radius: 4px; padding: 10px; margin-bottom: 10px; }
+        .empty { color: #6c757d; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Gestión de Inventario (CRUD)</h2>
-        <input type="text" id="itemName" placeholder="Nombre del nuevo registro">
-        <button onclick="createItem()">Agregar Registro</button>
+        <div id="message" class="message" role="alert" hidden></div>
+        <input type="text" id="itemName" placeholder="Nombre del nuevo registro" maxlength="200">
+        <button id="addBtn">Agregar Registro</button>
         <ul id="itemList"></ul>
     </div>
 
@@ -28,48 +32,114 @@
         // NET-05 exige usar el dominio grupo#.lab
         const API_URL = 'http://api.grupo2.lab/api/items';
 
+        const messageBox = document.getElementById('message');
+        const nameInput = document.getElementById('itemName');
+        const list = document.getElementById('itemList');
+
+        function showMessage(text) {
+            messageBox.textContent = text || '';
+            messageBox.hidden = !text;
+        }
+
+        // Llama a la API y lanza un Error con un texto entendible si algo falla
+        // (API caida, base de datos sin conexion, registro inexistente, etc.).
+        async function request(url, options) {
+            let res;
+            try {
+                res = await fetch(url, options);
+            } catch (e) {
+                throw new Error('No se pudo conectar con la API.');
+            }
+            if (!res.ok) {
+                let detail = '';
+                try { detail = (await res.json()).error; } catch (e) { /* respuesta sin JSON */ }
+                throw new Error(detail || `La API respondió con error ${res.status}.`);
+            }
+            return res.status === 204 ? null : res.json();
+        }
+
+        function jsonOptions(method, body) {
+            return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        }
+
+        function renderItem(item) {
+            const li = document.createElement('li');
+
+            const label = document.createElement('span');
+            label.textContent = item.name; // textContent: el nombre nunca se interpreta como HTML
+
+            const actions = document.createElement('div');
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn-edit';
+            editBtn.textContent = 'Editar';
+            editBtn.addEventListener('click', () => editItem(item));
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-danger';
+            deleteBtn.textContent = 'Eliminar';
+            deleteBtn.addEventListener('click', () => deleteItem(item));
+
+            actions.append(editBtn, deleteBtn);
+            li.append(label, actions);
+            return li;
+        }
+
         async function loadItems() {
-            const res = await fetch(API_URL);
-            const items = await res.json();
-            const list = document.getElementById('itemList');
-            list.innerHTML = '';
-            items.forEach(item => {
-                list.innerHTML += `
-                    <li>
-                        <span>${item.name}</span>
-                        <div>
-                            <button class="btn-edit" onclick="editItem(${item.id})">Editar</button>
-                            <button class="btn-danger" onclick="deleteItem(${item.id})">Eliminar</button>
-                        </div>
-                    </li>`;
-            });
+            try {
+                const items = await request(API_URL);
+                list.replaceChildren();
+                if (items.length === 0) {
+                    const empty = document.createElement('li');
+                    empty.className = 'empty';
+                    empty.textContent = 'No hay registros todavía.';
+                    list.append(empty);
+                }
+                items.forEach((item) => list.append(renderItem(item)));
+                showMessage('');
+            } catch (e) {
+                showMessage(e.message);
+            }
         }
 
         async function createItem() {
-            const name = document.getElementById('itemName').value;
+            const name = nameInput.value.trim();
             if (!name) return alert('Ingrese un nombre');
-            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-            document.getElementById('itemName').value = '';
-            loadItems();
-        }
-
-        async function editItem(id) {
-            const newName = prompt('Ingrese el nuevo nombre:');
-            if (!newName) return;
-            await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newName }) });
-            loadItems();
-        }
-
-        async function deleteItem(id) {
-            if (confirm('¿Seguro que desea eliminar este registro?')) {
-                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-                loadItems();
+            try {
+                await request(API_URL, jsonOptions('POST', { name }));
+                nameInput.value = '';
+            } catch (e) {
+                showMessage(e.message);
+                return;
             }
+            loadItems();
         }
+
+        async function editItem(item) {
+            const newName = prompt('Ingrese el nuevo nombre:', item.name);
+            if (newName === null || !newName.trim()) return;
+            try {
+                await request(`${API_URL}/${item.id}`, jsonOptions('PUT', { name: newName.trim() }));
+            } catch (e) {
+                showMessage(e.message);
+                return;
+            }
+            loadItems();
+        }
+
+        async function deleteItem(item) {
+            if (!confirm('¿Seguro que desea eliminar este registro?')) return;
+            try {
+                await request(`${API_URL}/${item.id}`, { method: 'DELETE' });
+            } catch (e) {
+                showMessage(e.message);
+                return;
+            }
+            loadItems();
+        }
+
+        document.getElementById('addBtn').addEventListener('click', createItem);
+        nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') createItem(); });
 
         loadItems();
     </script>
 </body>
 </html>
-
-<!-- Trigger inicial para GitHub Actions -->
