@@ -48,11 +48,11 @@ const json = (method, body) => ({
   body: JSON.stringify(body),
 });
 
-test('/health responde healthy', async () => {
+test('/health responde saludable', async () => {
   await withServer(fakePool(), async (base) => {
     const res = await fetch(`${base}/health`);
     assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), { status: 'healthy' });
+    assert.deepEqual(await res.json(), { status: 'saludable' });
   });
 });
 
