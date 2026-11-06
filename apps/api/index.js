@@ -70,7 +70,7 @@ function createApp(pool) {
 
   // --- Endpoints --------------------------------------------------------------
   app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
+    res.status(200).json({ status: 'saludable' });
   });
 
   app.get('/metrics', async (req, res) => {
