@@ -16,7 +16,7 @@ spec:
       containers:
       - name: api
         image: ghcr.io/allanperez08/kubelab-api:9a0ece3
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         envFrom:
         - secretRef:
             name: postgres-secret # SEC-02: Toma las credenciales inyectadas por Doppler
