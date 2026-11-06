@@ -16,7 +16,7 @@ spec:
       containers:
       - name: web
         image: ghcr.io/allanperez08/kubelab-web:d3e2cbb
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         resources:
